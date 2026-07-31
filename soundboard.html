@@ -1,233 +1,331 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Likʼwala Alphabet Soundboard</title>
-  <style>
-    :root {
-      --bg-color: #f8fafc;
-      --card-bg: #ffffff;
-      --card-border: #e2e8f0;
-      --card-hover: #eff6ff;
-      --card-active: #dbeafe;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --accent: #2563eb;
-      --radius: 12px;
-      --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Likʼwala Alphabet Soundboard</title>
+    <!-- Unicode font support for Kwak'wala / Lik'wala characters -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Charis+SIL:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f7f6f2;
+            --card-bg: #ffffff;
+            --card-border: #e2dfd7;
+            --card-hover: #f0ebe1;
+            --card-active: #c86446;
+            --text-main: #2c2a29;
+            --text-sub: #6b6661;
+            --accent-color: #8c3b2b;
+            --accent-glow: rgba(140, 59, 43, 0.15);
+            --font-indigenous: 'Charis SIL', 'Gentium Plus', 'Noto Sans', serif;
+            --font-ui: 'Inter', system-ui, sans-serif;
+        }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      padding: 2rem 1rem;
-      min-height: 100vh;
-    }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            line-height: 1.5;
+            padding: 2rem 1rem;
+            min-height: 100vh;
+        }
 
-    header {
-      text-align: center;
-      max-width: 800px;
-      margin: 0 auto 2.5rem;
-    }
+        header {
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto 2rem auto;
+        }
 
-    h1 {
-      font-size: 2.25rem;
-      font-weight: 700;
-      color: var(--text-main);
-      margin-bottom: 0.5rem;
-    }
+        h1 {
+            font-family: var(--font-indigenous);
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+        }
 
-    p.subtitle {
-      font-size: 1.1rem;
-      color: var(--text-muted);
-    }
+        p.subtitle {
+            font-size: 1.1rem;
+            color: var(--text-sub);
+            margin-bottom: 1.5rem;
+        }
 
-    .grid-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-      gap: 1rem;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            max-width: 600px;
+            margin: 0 auto 2rem auto;
+            flex-wrap: wrap;
+        }
 
-    .letter-card {
-      background: var(--card-bg);
-      border: 2px solid var(--card-border);
-      border-radius: var(--radius);
-      padding: 1.25rem 0.5rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      user-select: none;
-      box-shadow: var(--shadow);
-      transition: all 0.15s ease-in-out;
-    }
+        .search-box {
+            width: 100%;
+            padding: 0.8rem 1.2rem;
+            border: 2px solid var(--card-border);
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background: var(--card-bg);
+        }
 
-    .letter-card:hover {
-      background-color: var(--card-hover);
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
+        .search-box:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
 
-    .letter-card:active, .letter-card.playing {
-      background-color: var(--card-active);
-      border-color: var(--accent);
-      transform: scale(0.96);
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
-    }
+        .soundboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 1rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
 
-    .symbol {
-      font-size: 2rem;
-      font-weight: 700;
-      line-height: 1.2;
-      margin-bottom: 0.35rem;
-      color: var(--text-main);
-    }
+        .letter-card {
+            background-color: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 14px;
+            padding: 1.2rem 0.5rem;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 110px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
 
-    .phonetic {
-      font-size: 0.875rem;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
+        .letter-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-color);
+            background-color: var(--card-hover);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+        }
 
-    footer {
-      text-align: center;
-      margin-top: 3rem;
-      font-size: 0.875rem;
-      color: var(--text-muted);
-    }
+        .letter-card:active, .letter-card.playing {
+            transform: translateY(0) scale(0.97);
+            background-color: var(--card-active);
+            border-color: var(--accent-color);
+            color: #ffffff;
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
 
-    @media (max-width: 480px) {
-      .grid-container {
-        grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
-        gap: 0.75rem;
-      }
-      .symbol {
-        font-size: 1.6rem;
-      }
-      .phonetic {
-        font-size: 0.75rem;
-      }
-    }
-  </style>
+        .letter-card.playing .phonetic {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .symbol {
+            font-family: var(--font-indigenous);
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 0.3rem;
+        }
+
+        .phonetic {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+
+        .status-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #2c2a29;
+            color: #fff;
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .status-toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: var(--text-sub);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .soundboard-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 0.75rem;
+            }
+            .symbol { font-size: 1.8rem; }
+            .phonetic { font-size: 0.75rem; }
+        }
+    </style>
 </head>
 <body>
 
-  <header>
-    <h1>Likʼwala Alphabet Soundboard</h1>
-    <p class="subtitle">Click any letter to listen to its pronunciation.</p>
-  </header>
+    <header>
+        <h1>Likʼwala Alphabet Soundboard</h1>
+        <p class="subtitle">Click any letter to hear its pronunciation and phonetic guide for English speakers.</p>
+        
+        <div class="controls">
+            <input type="text" id="search" class="search-box" placeholder="Search letter or phonetic guide..." aria-label="Search letters">
+        </div>
+    </header>
 
-  <main class="grid-container" id="soundboard"></main>
+    <main class="soundboard-grid" id="grid"></main>
 
-  <footer>
-    <p>Likʼwala / Liq'uala Language Learning Resource</p>
-  </footer>
+    <div id="toast" class="status-toast">Playing audio...</div>
 
-  <script>
-    // Alphabet definition with symbols, phonetic guides, and safe file names
-    const alphabet = [
-      { char: "a",  phonetic: "ah (father)",   file: "a" },
-      { char: "b",  phonetic: "b (boy)",       file: "b" },
-      { char: "c",  phonetic: "ts (cats)",     file: "c" },
-      { char: "c̓",  phonetic: "ts' (popped)",  file: "c_ejective" },
-      { char: "d",  phonetic: "d (dog)",       file: "d" },
-      { char: "dᶻ", phonetic: "dz (adze)",     file: "dz" },
-      { char: "e",  phonetic: "eh (bed)",      file: "e" },
-      { char: "ə",  phonetic: "uh (sofa)",     file: "schwa" },
-      { char: "g",  phonetic: "g (go)",        file: "g" },
-      { char: "gʷ", phonetic: "gw (Gwen)",     file: "gw" },
-      { char: "ǧ",  phonetic: "deep g",        file: "g_uvular" },
-      { char: "ǧʷ", phonetic: "deep gw",       file: "gw_uvular" },
-      { char: "h",  phonetic: "h (hat)",       file: "h" },
-      { char: "i",  phonetic: "ee (see)",      file: "i" },
-      { char: "k",  phonetic: "k (kite)",      file: "k" },
-      { char: "k̓",  phonetic: "k' (popped)",   file: "k_ejective" },
-      { char: "kʷ", phonetic: "kw (quit)",     file: "kw" },
-      { char: "k̓ʷ", phonetic: "kw' (popped)",  file: "kw_ejective" },
-      { char: "l",  phonetic: "l (look)",      file: "l" },
-      { char: "l̓",  phonetic: "l' (glottal)",  file: "l_glottal" },
-      { char: "ł",  phonetic: "lh (breath)",   file: "lh" },
-      { char: "λ",  phonetic: "dl (bedlam)",   file: "dl" },
-      { char: "ƛ",  phonetic: "tl (atlas)",    file: "tl" },
-      { char: "ƛ̓",  phonetic: "tl' (popped)",  file: "tl_ejective" },
-      { char: "m",  phonetic: "m (mother)",    file: "m" },
-      { char: "m̓",  phonetic: "m' (glottal)",  file: "m_glottal" },
-      { char: "n",  phonetic: "n (net)",       file: "n" },
-      { char: "n̓",  phonetic: "n' (glottal)",  file: "n_glottal" },
-      { char: "o",  phonetic: "oh (go)",       file: "o" },
-      { char: "p",  phonetic: "p (pen)",       file: "p" },
-      { char: "p̓",  phonetic: "p' (popped)",   file: "p_ejective" },
-      { char: "q",  phonetic: "deep k",        file: "q" },
-      { char: "qʷ", phonetic: "deep kw",       file: "qw" },
-      { char: "q̓",  phonetic: "deep k'",       file: "q_ejective" },
-      { char: "q̓ʷ", phonetic: "deep kw'",      file: "qw_ejective" },
-      { char: "s",  phonetic: "s (sun)",       file: "s" },
-      { char: "t",  phonetic: "t (top)",       file: "t" },
-      { char: "t̓",  phonetic: "t' (popped)",   file: "t_ejective" },
-      { char: "u",  phonetic: "oo (boot)",     file: "u" },
-      { char: "w",  phonetic: "w (wet)",       file: "w" },
-      { char: "w̓",  phonetic: "w' (glottal)",  file: "w_glottal" },
-      { char: "x",  phonetic: "kh (loch)",     file: "x" },
-      { char: "xʷ", phonetic: "khw (rounded)", file: "xw" },
-      { char: "x̌",  phonetic: "deep kh",       file: "x_uvular" },
-      { char: "x̌ʷ", phonetic: "deep khw",      file: "xw_uvular" },
-      { char: "y",  phonetic: "y (yes)",       file: "y" },
-      { char: "y̓",  phonetic: "y' (glottal)",  file: "y_glottal" },
-      { char: "ʔ",  phonetic: "catch (uh-oh)", file: "glottal_stop" }
-    ];
+    <footer>
+        <p>Likʼwala Soundboard &bull; Sound files located in <code>assets/</code> directory.</p>
+    </footer>
 
-    let currentAudio = null;
-    const soundboard = document.getElementById('soundboard');
+    <script>
+        // Exact letter to filename mapping as provided
+        const alphabetMapping = [
+            { symbol: "a", file: "a", phonetic: "ah (father)" },
+            { symbol: "b", file: "b", phonetic: "b (boy)" },
+            { symbol: "c", file: "c", phonetic: "ts (cats)" },
+            { symbol: "c̓", file: "c_glottal", phonetic: "ts' (popped ts)" },
+            { symbol: "d", file: "d", phonetic: "d (dog)" },
+            { symbol: "dᶻ", file: "dz", phonetic: "dz (adze)" },
+            { symbol: "e", file: "e", phonetic: "eh (bed)" },
+            { symbol: "ē", file: "e_long", phonetic: "ay (play)" },
+            { symbol: "ə", file: "schwa", phonetic: "uh (cup / schwa)" },
+            { symbol: "g", file: "g", phonetic: "g (go)" },
+            { symbol: "gʷ", file: "g_w", phonetic: "gw (gwen)" },
+            { symbol: "ǧ", file: "g_wedge", phonetic: "gh (deep back g)" },
+            { symbol: "ǧʷ", file: "g_wedge_w", phonetic: "ghw (deep back gw)" },
+            { symbol: "h", file: "h", phonetic: "h (hi)" },
+            { symbol: "i", file: "i", phonetic: "ee (see)" },
+            { symbol: "k", file: "k", phonetic: "k (sky)" },
+            { symbol: "k̓", file: "k_glottal", phonetic: "k' (popped k)" },
+            { symbol: "kʷ", file: "k_w", phonetic: "kw (quick)" },
+            { symbol: "k̓ʷ", file: "k_w_glottal", phonetic: "kw' (popped kw)" },
+            { symbol: "l", file: "l", phonetic: "l (look)" },
+            { symbol: "l̓", file: "l_glottal", phonetic: "'l (glottalized l)" },
+            { symbol: "ł", file: "l_tilde", phonetic: "lh (hissed l)" },
+            { symbol: "λ", file: "lambda", phonetic: "dl (addle)" },
+            { symbol: "ƛ", file: "lambda_barred", phonetic: "tl (atlas)" },
+            { symbol: "ƛ̓", file: "lambda_barred_glottal", phonetic: "tl' (popped tl)" },
+            { symbol: "m", file: "m", phonetic: "m (mother)" },
+            { symbol: "m̓", file: "m_glottal", phonetic: "'m (glottalized m)" },
+            { symbol: "n", file: "n", phonetic: "n (net)" },
+            { symbol: "n̓", file: "n_glottal", phonetic: "'n (glottalized n)" },
+            { symbol: "o", file: "o", phonetic: "oh (boat)" },
+            { symbol: "p", file: "p", phonetic: "p (spin)" },
+            { symbol: "p̓", file: "p_glottal", phonetic: "p' (popped p)" },
+            { symbol: "q", file: "q", phonetic: "q (deep back k)" },
+            { symbol: "qʷ", file: "q_w", phonetic: "qw (deep back kw)" },
+            { symbol: "q̓", file: "q_glottal", phonetic: "q' (popped deep k)" },
+            { symbol: "q̓ʷ", file: "q_w_glottal", phonetic: "qw' (popped deep kw)" },
+            { symbol: "s", file: "s", phonetic: "s (sun)" },
+            { symbol: "t", file: "t", phonetic: "t (stop)" },
+            { symbol: "t̓", file: "t_glottal", phonetic: "t' (popped t)" },
+            { symbol: "u", file: "u", phonetic: "oo (boot)" },
+            { symbol: "w", file: "w", phonetic: "w (win)" },
+            { symbol: "w̓", file: "w_glottal", phonetic: "'w (glottalized w)" },
+            { symbol: "x", file: "x", phonetic: "kh (Scottish loch)" },
+            { symbol: "xʷ", file: "x_w", phonetic: "khw (whistled kh)" },
+            { symbol: "x̌", file: "x_wedge", phonetic: "xr (deep German ach)" },
+            { symbol: "x̌ʷ", file: "x_wedge_w", phonetic: "xrw (deep rounded rasp)" },
+            { symbol: "y", file: "y", phonetic: "y (yes)" },
+            { symbol: "y̓", file: "y_glottal", phonetic: "'y (glottalized y)" },
+            { symbol: "ʔ", file: "glottal_stop", phonetic: "' (glottal catch)" }
+        ];
 
-    // Generate grid cards
-    alphabet.forEach(item => {
-      const card = document.createElement('button');
-      card.className = 'letter-card';
-      card.type = 'button';
-      card.setAttribute('aria-label', `Play sound for letter ${item.char}`);
+        let currentAudio = null;
+        const grid = document.getElementById('grid');
+        const searchInput = document.getElementById('search');
+        const toast = document.getElementById('toast');
 
-      card.innerHTML = `
-        <span class="symbol">${item.char}</span>
-        <span class="phonetic">${item.phonetic}</span>
-      `;
+        function renderGrid(filter = '') {
+            grid.innerHTML = '';
+            const query = filter.toLowerCase().trim();
 
-      card.addEventListener('click', () => playSound(item.file, card));
-      soundboard.appendChild(card);
-    });
+            alphabetMapping.forEach(item => {
+                if (query && !item.symbol.toLowerCase().includes(query) && !item.phonetic.toLowerCase().includes(query)) {
+                    return;
+                }
 
-    function playSound(filename, element) {
-      // Stop currently playing audio if any
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-        document.querySelectorAll('.letter-card').forEach(el => el.classList.remove('playing'));
-      }
+                const card = document.createElement('div');
+                card.className = 'letter-card';
+                card.setAttribute('role', 'button');
+                card.setAttribute('tabindex', '0');
+                card.innerHTML = `
+                    <div class="symbol">${item.symbol}</div>
+                    <div class="phonetic">${item.phonetic}</div>
+                `;
 
-      // Create and play audio from assets folder
-      const audioPath = `assets/${filename}.mp3`;
-      currentAudio = new Audio(audioPath);
+                // Play audio on click or Enter key
+                const playHandler = () => playSound(item, card);
+                card.addEventListener('click', playHandler);
+                card.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        playHandler();
+                    }
+                });
 
-      element.classList.add('playing');
+                grid.appendChild(card);
+            });
+        }
 
-      currentAudio.play().catch(err => {
-        console.warn(`Could not play audio clip: assets/${filename}.mp3`, err);
-      });
+        function playSound(item, cardElement) {
+            // Stop any currently playing audio
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
 
-      currentAudio.onended = () => {
-        element.classList.remove('playing');
-      };
-    }
-  </script>
+            // Remove visual playing indicator from all cards
+            document.querySelectorAll('.letter-card').forEach(c => c.classList.remove('playing'));
+            cardElement.classList.add('playing');
+
+            const filePath = `assets/${item.file}.mp3`;
+            currentAudio = new Audio(filePath);
+
+            showToast(`Playing '${item.symbol}' (${filePath})`);
+
+            currentAudio.play().then(() => {
+                currentAudio.onended = () => {
+                    cardElement.classList.remove('playing');
+                };
+            }).catch(err => {
+                console.warn(`Audio file missing or blocked: ${filePath}`, err);
+                showToast(`Missing file: assets/${item.file}.mp3`);
+                setTimeout(() => cardElement.classList.remove('playing'), 600);
+            });
+        }
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        // Live Search Filter
+        searchInput.addEventListener('input', (e) => renderGrid(e.target.value));
+
+        // Initial render
+        renderGrid();
+    </script>
 </body>
 </html>
