@@ -1,1 +1,1 @@
-[Public Website](https://krystalhenkel.github.io/languagegames)
+[Public Website](https://krystalhenkel.github.io/learninggames)
