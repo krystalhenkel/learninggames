@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Language Defender — Lik̓wala Alphabet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#071019;
+    --bg-mid:#0e2f36;
+    --bg-mid-2:#123c44;
+    --cedar:#c1622c;
+    --cedar-bright:#e08348;
+    --tide:#34a89c;
+    --tide-bright:#4fc9bc;
+    --moon:#f4e8d0;
+    --danger:#d9503a;
+    --text:#eef4f2;
+    --text-dim:#a9c2bf;
+    --panel:#0a2126;
+    --panel-edge:#1c454c;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:var(--bg-deep);
+    color:var(--text);
+    font-family:'Nunito',sans-serif;
+    overflow:hidden;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+  }
+  h1,h2,h3,.display{font-family:'Baloo 2',sans-serif;}
+
+  #game-root{
+    position:fixed;inset:0;
+    display:flex;flex-direction:column;
+    height:100dvh;
+  }
+
+  /* ---------- Ambient background ---------- */
+  #sky{
+    position:absolute;inset:0;z-index:0;
+    background:
+      radial-gradient(ellipse at 78% 12%, rgba(244,232,208,0.18) 0%, rgba(244,232,208,0.05) 26%, transparent 45%),
+      linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 55%, var(--bg-mid-2) 100%);
+    pointer-events:none;
+  }
+  #moon{
+    position:absolute; top:6%; right:9%;
+    width:64px;height:64px;border-radius:50%;
+    background:radial-gradient(circle at 35% 32%, #fffdf6, var(--moon) 60%, #d8c79f 100%);
+    box-shadow:0 0 40px 6px rgba(244,232,208,0.35);
+  }
+  .star{position:absolute;background:var(--moon);border-radius:50%;opacity:0.7;animation:twinkle 3.2s ease-in-out infinite;}
+  @keyframes twinkle{0%,100%{opacity:0.2;}50%{opacity:0.9;}}
+  #ridge{
+    position:absolute;left:0;right:0;bottom:0;height:14%;z-index:0;
+    background:var(--bg-deep);
+    clip-path:polygon(0% 100%,0% 55%,8% 70%,18% 40%,30% 65%,42% 30%,55% 60%,68% 35%,80% 62%,90% 42%,100% 58%,100% 100%);
+    opacity:0.9;
+    pointer-events:none;
+  }
+
+  /* ---------- Header ---------- */
+  #hud{
+    position:relative;z-index:5;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 16px;
+    background:linear-gradient(180deg, rgba(7,16,25,0.85), rgba(7,16,25,0.55));
+    border-bottom:1px solid var(--panel-edge);
+    flex:0 0 auto;
+  }
+  #hud .hud-block{display:flex;align-items:center;gap:10px;}
+  #hud .label{font-size:0.68rem;letter-spacing:0.09em;text-transform:uppercase;color:var(--text-dim);}
+  #hud .value{font-family:'Baloo 2';font-weight:700;font-size:1.25rem;color:var(--tide-bright);}
+  #hearts{display:flex;gap:5px;font-size:1.3rem;line-height:1;}
+  .heart{filter:drop-shadow(0 0 3px rgba(217,80,58,0.6));transition:transform .2s ease, opacity .2s ease;}
+  .heart.lost{opacity:0.18;transform:scale(0.8);filter:none;}
+
+  /* ---------- Play field ---------- */
+  #field{
+    position:relative;flex:1 1 auto;overflow:hidden;z-index:2;
+  }
+  .falling-item{
+    position:absolute;
+    display:flex;flex-direction:column;align-items:center;
+    width:76px;
+    pointer-events:none;
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,0.45));
+  }
+  .falling-item img, .falling-item .fallback{
+    width:76px;height:76px;object-fit:contain;
+    border-radius:14px;
+  }
+  .falling-item .fallback{
+    display:flex;align-items:center;justify-content:center;
+    background:var(--panel);
+    border:2px solid var(--panel-edge);
+    font-size:2rem;
+  }
+  .falling-item .word-tag{
+    margin-top:3px;font-size:0.7rem;font-weight:800;
+    background:rgba(7,16,25,0.7);padding:1px 7px;border-radius:8px;
+    color:var(--moon);letter-spacing:0.02em;
+  }
+  .falling-item.shockwave{animation:pop .3s ease forwards;}
+  @keyframes pop{
+    0%{transform:scale(1);opacity:1;}
+    60%{transform:scale(1.35);opacity:0.9;}
+    100%{transform:scale(0.2);opacity:0;}
+  }
+
+  .missile{
+    position:absolute;z-index:4;pointer-events:none;
+    width:6px;height:22px;border-radius:3px;
+    background:linear-gradient(180deg, var(--tide-bright), var(--cedar-bright));
+    box-shadow:0 0 8px 2px rgba(79,201,188,0.7);
+    transform-origin:center bottom;
+  }
+  .burst{
+    position:absolute;z-index:4;pointer-events:none;
+    width:10px;height:10px;border-radius:50%;
+    background:var(--tide-bright);
+  }
+  .burst.b2{background:var(--cedar-bright);}
+
+  .ground-flash{
+    position:absolute;z-index:3;pointer-events:none;
+    bottom:0;height:6px;border-radius:3px;
+    background:var(--danger);
+    box-shadow:0 0 14px 4px rgba(217,80,58,0.8);
+    animation:groundflash .5s ease forwards;
+  }
+  @keyframes groundflash{0%{opacity:1;}100%{opacity:0;}}
+
+  /* ---------- Keyboard ---------- */
+  #keyboard-wrap{
+    position:relative;z-index:5;flex:0 0 auto;
+    background:linear-gradient(180deg, rgba(10,33,38,0.92), rgba(10,33,38,0.98));
+    border-top:1px solid var(--panel-edge);
+    padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+  }
+  #keyboard{
+    display:flex;flex-wrap:wrap;gap:6px;justify-content:center;
+    max-height:34vh;overflow-y:auto;
+  }
+  .key-btn{
+    font-family:'Baloo 2',sans-serif;
+    font-size:1.05rem;font-weight:700;
+    min-width:42px;height:42px;padding:0 8px;
+    background:var(--panel);
+    border:2px solid var(--panel-edge);
+    color:var(--text);
+    border-radius:10px;
+    cursor:pointer;
+    transition:transform .08s ease, background .15s ease, border-color .15s ease;
+  }
+  .key-btn:hover{border-color:var(--tide);}
+  .key-btn:focus-visible{outline:3px solid var(--tide-bright);outline-offset:2px;}
+  .key-btn:active{transform:scale(0.92);}
+  .key-btn.correct-flash{background:var(--tide);border-color:var(--tide-bright);}
+  .key-btn.wrong-flash{background:var(--danger);border-color:#ff8a75;animation:shake .3s ease;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(-4px);}
+    75%{transform:translateX(4px);}
+  }
+
+  /* ---------- Overlays ---------- */
+  .overlay{
+    position:absolute;inset:0;z-index:20;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(7,16,25,0.88);
+    padding:20px;
+    text-align:center;
+  }
+  .card{
+    max-width:480px;width:100%;
+    background:linear-gradient(180deg, var(--panel), #081a1e);
+    border:1px solid var(--panel-edge);
+    border-radius:20px;
+    padding:28px 26px 30px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  }
+  .card h1{font-size:1.9rem;margin:0 0 6px;color:var(--moon);}
+  .card .subtitle{color:var(--tide-bright);font-weight:800;margin-bottom:18px;font-size:0.95rem;letter-spacing:0.03em;}
+  .card ul{text-align:left;margin:0 0 22px;padding-left:1.2em;color:var(--text-dim);line-height:1.5;font-size:0.95rem;}
+  .card ul li{margin-bottom:8px;}
+  .card ul li b{color:var(--text);}
+  .big-btn{
+    font-family:'Baloo 2';font-weight:800;font-size:1.15rem;
+    background:linear-gradient(180deg, var(--cedar-bright), var(--cedar));
+    color:#1b0d05;border:none;border-radius:14px;
+    padding:14px 30px;cursor:pointer;
+    box-shadow:0 8px 0 #8a441c, 0 10px 18px rgba(0,0,0,0.4);
+    transition:transform .08s ease;
+  }
+  .big-btn:active{transform:translateY(4px);box-shadow:0 4px 0 #8a441c, 0 6px 12px rgba(0,0,0,0.4);}
+  .final-score{font-size:2.6rem;font-weight:800;color:var(--tide-bright);margin:6px 0 20px;font-family:'Baloo 2';}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<div id="game-root">
+  <div id="sky">
+    <div id="moon"></div>
+    <div id="ridge"></div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-block">
+      <span class="label">Score</span>
+      <span class="value" id="score-val">0</span>
+    </div>
+    <div class="hud-block">
+      <span class="label">Level</span>
+      <span class="value" id="level-val">1</span>
+    </div>
+    <div class="hud-block" id="hearts" aria-label="Lives remaining"></div>
+  </div>
+
+  <!-- Play field -->
+  <div id="field"></div>
+
+  <!-- Keyboard -->
+  <div id="keyboard-wrap">
+    <div id="keyboard" role="group" aria-label="Lik̓wala letter keyboard"></div>
+  </div>
+
+  <!-- Start screen -->
+  <div class="overlay" id="start-screen">
+    <div class="card">
+      <h1>Language Defender</h1>
+      <div class="subtitle">Lik̓wala Alphabet Edition</div>
+      <ul>
+        <li>Pictures will fall slowly from the sky.</li>
+        <li>Say the word for each picture in <b>Lik̓wala</b>, then tap the letter it <b>starts with</b> on the keyboard below.</li>
+        <li>A correct letter fires a missile and destroys the picture. A wrong letter just flashes — no penalty, try again!</li>
+        <li>If a picture reaches the ground, you lose one of your <b>3 lives</b>.</li>
+        <li>Every few correct answers, you level up and pictures fall a little faster.</li>
+        <li>Works with taps, clicks, or your keyboard.</li>
+      </ul>
+      <button class="big-btn" id="start-btn">Start Game</button>
+    </div>
+  </div>
+
+  <!-- Game over screen -->
+  <div class="overlay hidden" id="gameover-screen">
+    <div class="card">
+      <h1>Village Held!</h1>
+      <div class="subtitle">Game Over</div>
+      <div class="final-score" id="final-score">0</div>
+      <button class="big-btn" id="restart-btn">Play Again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   LANGUAGE DEFENDER — Lik̓wala Alphabet Edition
+   Single-file Missile-Command-style game for alphabet practice.
+   =====================================================================
+
+   HOW TO CUSTOMIZE THIS GAME
+   ---------------------------------------------------------------------
+   1. ALPHABET (below): the set of letter buttons shown on the keyboard,
+      and the sound file played when each one is pressed.
+   2. WORD_LIST (below): maps each image filename (in /images) to the
+      Lik̓wala word it shows and that word's first letter.
+   3. Sound files go in /assets, named exactly as given in each
+      alphabet entry's "sound" field.
+   4. DIFFICULTY constants near the bottom of this section control
+      fall speed, spawn rate, and level-up pace.
+
+   ⚠️ IMPORTANT LANGUAGE NOTE
+   ---------------------------------------------------------------------
+   The alphabet below was compiled from public reference sources on
+   Lik̓wala/Liq'wala (a Kwak'wala dialect/related language of the
+   Laich-kwil-tach people). Orthography conventions can vary between
+   communities, language programs, and published sources. Please check
+   this list — including letter order, exact characters, and digraphs
+   — against the materials used by your own Lik̓wala language
+   program/teacher/authority, and correct anything that doesn't match
+   before using this with learners. The WORD_LIST below uses ENGLISH
+   placeholder words (e.g. "bear") purely so the game runs out of the
+   box — replace every "word" value with the real Lik̓wala word for
+   that image, and fix "firstLetter" to match.
+   ===================================================================== */
+
+// ---------------------------------------------------------------------
+// 1. ALPHABET — edit freely. "char" is what shows on the button.
+//    "sound" is the filename (in /assets) played when that button
+//    is pressed. Organized by phoneme grouping (see languagegeek.com's
+//    Liq'wala consonant/vowel charts) rather than a fixed alphabetical
+//    order, since sources disagree on ordering — reorder as you like.
+// ---------------------------------------------------------------------
+const ALPHABET = [
+  // Voiced stops
+  {char:'B',  sound:'assets/b.mp3'},
+  {char:'D',  sound:'assets/d.mp3'},
+  {char:'Dᶻ', sound:'assets/dz.mp3'},
+  {char:'Λ',  sound:'assets/dl.mp3'},
+  {char:'G',  sound:'assets/g.mp3'},
+  {char:'Gʷ', sound:'assets/gw.mp3'},
+  {char:'Ǧ',  sound:'assets/g-caron.mp3'},
+  {char:'Ǧʷ', sound:'assets/gw-caron.mp3'},
+  {char:'ʔ',  sound:'assets/glottal-stop.mp3'},
+  // Voiceless (aspirated) stops
+  {char:'P',  sound:'assets/p.mp3'},
+  {char:'T',  sound:'assets/t.mp3'},
+  {char:'C',  sound:'assets/c.mp3'},
+  {char:'Ƛ',  sound:'assets/tl.mp3'},
+  {char:'K',  sound:'assets/k.mp3'},
+  {char:'Kʷ', sound:'assets/kw.mp3'},
+  {char:'Q',  sound:'assets/q.mp3'},
+  {char:'Qʷ', sound:'assets/qw.mp3'},
+  // Ejective stops
+  {char:'P̓',  sound:'assets/p-glottal.mp3'},
+  {char:'T̓',  sound:'assets/t-glottal.mp3'},
+  {char:'C̓',  sound:'assets/c-glottal.mp3'},
+  {char:'Ƛ̓',  sound:'assets/tl-glottal.mp3'},
+  {char:'K̓',  sound:'assets/k-glottal.mp3'},
+  {char:'K̓ʷ', sound:'assets/kw-glottal.mp3'},
+  {char:'Q̓',  sound:'assets/q-glottal.mp3'},
+  {char:'Q̓ʷ', sound:'assets/qw-glottal.mp3'},
+  // Voiceless fricatives
+  {char:'S',  sound:'assets/s.mp3'},
+  {char:'Ł',  sound:'assets/lh.mp3'},
+  {char:'X',  sound:'assets/x.mp3'},
+  {char:'Xʷ', sound:'assets/xw.mp3'},
+  {char:'X̌',  sound:'assets/x-caron.mp3'},
+  {char:'X̌ʷ', sound:'assets/xw-caron.mp3'},
+  {char:'H',  sound:'assets/h.mp3'},
+  // Nasals / resonants
+  {char:'M',  sound:'assets/m.mp3'},
+  {char:'N',  sound:'assets/n.mp3'},
+  {char:'L',  sound:'assets/l.mp3'},
+  {char:'Y',  sound:'assets/y.mp3'},
+  {char:'W',  sound:'assets/w.mp3'},
+  // Glottalized nasals / resonants
+  {char:'M̓',  sound:'assets/m-glottal.mp3'},
+  {char:'N̓',  sound:'assets/n-glottal.mp3'},
+  {char:'L̓',  sound:'assets/l-glottal.mp3'},
+  {char:'Y̓',  sound:'assets/y-glottal.mp3'},
+  {char:'W̓',  sound:'assets/w-glottal.mp3'},
+  // Vowels
+  {char:'I',  sound:'assets/i.mp3'},
+  {char:'U',  sound:'assets/u.mp3'},
+  {char:'Ē',  sound:'assets/e-long.mp3'},
+  {char:'E',  sound:'assets/e.mp3'},
+  {char:'Ə',  sound:'assets/schwa.mp3'},
+  {char:'O',  sound:'assets/o.mp3'},
+  {char:'A',  sound:'assets/a.mp3'},
+];
+
+// ---------------------------------------------------------------------
+// 2. WORD_LIST — edit freely. Each entry maps an /images filename to
+//    the word it shows and that word's first letter (must exactly
+//    match one of the "char" values in ALPHABET above).
+//    ⚠️ "word" values here are ENGLISH PLACEHOLDERS. Replace with the
+//    real Lik̓wala word before using this with learners.
+// ---------------------------------------------------------------------
+const WORD_LIST = [
+  {file:'bear.png',     word:'bear (REPLACE ME)',     firstLetter:'B', alt:'bear'},
+  {file:'salmon.png',   word:'salmon (REPLACE ME)',   firstLetter:'S', alt:'salmon'},
+  {file:'canoe.png',    word:'canoe (REPLACE ME)',    firstLetter:'C', alt:'canoe'},
+  {file:'drum.png',     word:'drum (REPLACE ME)',     firstLetter:'D', alt:'drum'},
+  {file:'eagle.png',    word:'eagle (REPLACE ME)',    firstLetter:'E', alt:'eagle'},
+  {file:'house.png',    word:'house (REPLACE ME)',    firstLetter:'H', alt:'house'},
+  {file:'wolf.png',     word:'wolf (REPLACE ME)',     firstLetter:'W', alt:'wolf'},
+  {file:'mountain.png', word:'mountain (REPLACE ME)', firstLetter:'M', alt:'mountain'},
+  {file:'net.png',      word:'net (REPLACE ME)',      firstLetter:'N', alt:'net'},
+  {file:'owl.png',      word:'owl (REPLACE ME)',      firstLetter:'O', alt:'owl'},
+  {file:'lake.png',     word:'lake (REPLACE ME)',     firstLetter:'L', alt:'lake'},
+  {file:'yew.png',      word:'yew tree (REPLACE ME)', firstLetter:'Y', alt:'yew tree'},
+  {file:'axe.png',      word:'axe (REPLACE ME)',      firstLetter:'A', alt:'axe'},
+  {file:'gull.png',     word:'gull (REPLACE ME)',     firstLetter:'G', alt:'gull'},
+  {file:'quill.png',    word:'quill (REPLACE ME)',    firstLetter:'Q', alt:'quill'},
+  {file:'totem.png',    word:'totem pole (REPLACE ME)', firstLetter:'T', alt:'totem pole'},
+  {file:'paddle.png',   word:'paddle (REPLACE ME)',   firstLetter:'P', alt:'paddle'},
+  {file:'urchin.png',   word:'sea urchin (REPLACE ME)', firstLetter:'U', alt:'sea urchin'},
+  {file:'kelp.png',     word:'kelp (REPLACE ME)',     firstLetter:'K', alt:'kelp'},
+];
+
+// ---------------------------------------------------------------------
+// 3. DIFFICULTY — tune the pace of the game here.
+// ---------------------------------------------------------------------
+const DIFFICULTY = {
+  baseFallSeconds: 13,       // seconds to fall top-to-bottom at level 1
+  fallSecondsFloor: 4.5,     // fastest the fall is ever allowed to get
+  speedRampPerLevel: 0.9,    // seconds shaved off fall time per level
+  baseSpawnMs: 2600,         // ms between new pictures at level 1
+  spawnFloorMs: 900,         // fastest spawn rate
+  spawnRampPerLevel: 140,    // ms faster spawn per level
+  correctHitsPerLevel: 6,    // correct answers needed to level up
+  maxConcurrent: 4,          // max pictures on screen at once
+  startLives: 3,
+  pointsPerHit: 10,
+};
+
+/* =====================================================================
+   GAME ENGINE — shouldn't need editing below this line.
+   ===================================================================== */
+(function(){
+  const field = document.getElementById('field');
+  const keyboardEl = document.getElementById('keyboard');
+  const scoreVal = document.getElementById('score-val');
+  const levelVal = document.getElementById('level-val');
+  const heartsEl = document.getElementById('hearts');
+  const startScreen = document.getElementById('start-screen');
+  const gameoverScreen = document.getElementById('gameover-screen');
+  const finalScoreEl = document.getElementById('final-score');
+  const startBtn = document.getElementById('start-btn');
+  const restartBtn = document.getElementById('restart-btn');
+
+  let score = 0, level = 1, lives = DIFFICULTY.startLives;
+  let correctSinceLevelUp = 0;
+  let running = false;
+  let items = [];
+  let itemIdCounter = 0;
+  let spawnTimer = null;
+  let rafId = null;
+  let lastFrameTime = 0;
+
+  // -------- Build starfield --------
+  (function buildStars(){
+    const sky = document.getElementById('sky');
+    for(let i=0;i<40;i++){
+      const s = document.createElement('div');
+      s.className='star';
+      const size = Math.random()*2+1;
+      s.style.width=size+'px';
+      s.style.height=size+'px';
+      s.style.left=(Math.random()*100)+'%';
+      s.style.top=(Math.random()*55)+'%';
+      s.style.animationDelay=(Math.random()*3)+'s';
+      sky.appendChild(s);
+    }
+  })();
+
+  // -------- Build keyboard --------
+  const keyButtons = {};
+  ALPHABET.forEach((entry, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'key-btn';
+    btn.type = 'button';
+    btn.textContent = entry.char;
+    btn.setAttribute('data-char', entry.char);
+    btn.setAttribute('aria-label', 'Letter ' + entry.char);
+    btn.tabIndex = 0;
+    btn.addEventListener('click', () => handleKeyPress(entry.char, btn));
+    keyboardEl.appendChild(btn);
+    keyButtons[entry.char] = btn;
+  });
+
+  // Arrow-key navigation across the keyboard grid for accessibility
+  keyboardEl.addEventListener('keydown', (e) => {
+    const btnList = Array.from(keyboardEl.querySelectorAll('.key-btn'));
+    const currentIdx = btnList.indexOf(document.activeElement);
+    if (currentIdx === -1) return;
+    if (e.key === 'ArrowRight') { e.preventDefault(); (btnList[currentIdx+1]||btnList[0]).focus(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); (btnList[currentIdx-1]||btnList[btnList.length-1]).focus(); }
+  });
+
+  // Physical keyboard: map plain a-z presses directly to matching simple letters
+  const simpleKeyMap = {};
+  ALPHABET.forEach(entry => {
+    const plain = entry.char.toLowerCase();
+    if (/^[a-z]$/.test(plain) && !simpleKeyMap[plain]) {
+      simpleKeyMap[plain] = entry.char;
+    }
+  });
+  window.addEventListener('keydown', (e) => {
+    if (!running) return;
+    const k = e.key.toLowerCase();
+    if (simpleKeyMap[k]) {
+      handleKeyPress(simpleKeyMap[k], keyButtons[simpleKeyMap[k]]);
+    }
+  });
+
+  // -------- Hearts --------
+  function renderHearts(){
+    heartsEl.innerHTML = '';
+    for (let i=0;i<DIFFICULTY.startLives;i++){
+      const h = document.createElement('span');
+      h.className = 'heart' + (i < lives ? '' : ' lost');
+      h.textContent = '♥';
+      heartsEl.appendChild(h);
+    }
+  }
+
+  // -------- Sound --------
+  function playSound(path){
+    try{
+      const a = new Audio(path);
+      a.volume = 0.85;
+      a.play().catch(()=>{ /* file missing or blocked — ignore */ });
+    }catch(e){ /* ignore */ }
+  }
+
+  // -------- Spawning --------
+  function currentFallSeconds(){
+    const s = DIFFICULTY.baseFallSeconds - (level-1)*DIFFICULTY.speedRampPerLevel;
+    return Math.max(DIFFICULTY.fallSecondsFloor, s);
+  }
+  function currentSpawnMs(){
+    const s = DIFFICULTY.baseSpawnMs - (level-1)*DIFFICULTY.spawnRampPerLevel;
+    return Math.max(DIFFICULTY.spawnFloorMs, s);
+  }
+
+  function scheduleSpawn(){
+    clearTimeout(spawnTimer);
+    spawnTimer = setTimeout(() => {
+      if (!running) return;
+      spawnItem();
+      scheduleSpawn();
+    }, currentSpawnMs());
+  }
+
+  function spawnItem(){
+    if (items.length >= DIFFICULTY.maxConcurrent) return;
+    const wordObj = WORD_LIST[Math.floor(Math.random()*WORD_LIST.length)];
+    const fieldWidth = field.clientWidth;
+    const itemWidth = 76;
+    const x = Math.random() * Math.max(1, fieldWidth - itemWidth);
+
+    const el = document.createElement('div');
+    el.className = 'falling-item';
+    el.style.left = x + 'px';
+    el.style.top = '-90px';
+
+    const imgWrap = document.createElement('div');
+    const img = document.createElement('img');
+    img.src = 'images/' + wordObj.file;
+    img.alt = wordObj.alt || wordObj.word;
+    img.onerror = function(){
+      const fb = document.createElement('div');
+      fb.className = 'fallback';
+      fb.textContent = '🖼️';
+      el.replaceChild(fb, img);
+    };
+    el.appendChild(img);
+
+    const tag = document.createElement('div');
+    tag.className = 'word-tag';
+    tag.textContent = wordObj.firstLetter + ' …';
+    el.appendChild(tag);
+
+    field.appendChild(el);
+
+    const id = ++itemIdCounter;
+    const fallSeconds = currentFallSeconds();
+    const item = {
+      id, el, wordObj,
+      x, y: -90,
+      startTime: performance.now(),
+      durationMs: fallSeconds*1000,
+      alive: true,
+    };
+    items.push(item);
+  }
+
+  // -------- Main loop --------
+  function loop(now){
+    if (!running) return;
+    const fieldHeight = field.clientHeight;
+    items.forEach(item => {
+      if (!item.alive) return;
+      const elapsed = now - item.startTime;
+      const progress = Math.min(1, elapsed / item.durationMs);
+      const y = -90 + progress * (fieldHeight + 90);
+      item.y = y;
+      item.el.style.top = y + 'px';
+      if (progress >= 1) {
+        handleItemLanded(item);
+      }
+    });
+    items = items.filter(i => i.alive);
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function handleItemLanded(item){
+    item.alive = false;
+    if (item.el && item.el.parentNode) item.el.parentNode.removeChild(item.el);
+    loseLife(item.x);
+  }
+
+  function loseLife(x){
+    lives = Math.max(0, lives - 1);
+    renderHearts();
+    const flash = document.createElement('div');
+    flash.className = 'ground-flash';
+    flash.style.left = Math.max(0,x-20) + 'px';
+    flash.style.width = '116px';
+    field.appendChild(flash);
+    setTimeout(()=>flash.remove(), 500);
+    if (lives <= 0) {
+      endGame();
+    }
+  }
+
+  // -------- Answering --------
+  function handleKeyPress(char, btnEl){
+    if (!running) return;
+    playSound(ALPHABET.find(a=>a.char===char)?.sound);
+
+    // find the lowest (closest to landing) alive item matching this letter
+    let target = null;
+    items.forEach(item => {
+      if (!item.alive) return;
+      if (item.wordObj.firstLetter === char) {
+        if (!target || item.y > target.y) target = item;
+      }
+    });
+
+    if (target) {
+      correctHit(target, btnEl);
+    } else {
+      wrongPress(btnEl);
+    }
+  }
+
+  function correctHit(item, btnEl){
+    item.alive = false;
+    if (btnEl){
+      btnEl.classList.add('correct-flash');
+      setTimeout(()=>btnEl.classList.remove('correct-flash'), 250);
+    }
+    fireMissile(item);
+  }
+
+  function fireMissile(item){
+    const fieldRect = field.getBoundingClientRect();
+    const startX = fieldRect.width/2;
+    const startY = fieldRect.height;
+    const targetX = item.x + 38;
+    const targetY = item.y + 38;
+
+    const missile = document.createElement('div');
+    missile.className = 'missile';
+    missile.style.left = startX + 'px';
+    missile.style.top = startY + 'px';
+    field.appendChild(missile);
+
+    const dx = targetX - startX, dy = targetY - startY;
+    const angle = Math.atan2(dy, dx) * 180/Math.PI + 90;
+    missile.style.transform = `rotate(${angle}deg)`;
+
+    const duration = 220;
+    const startTime = performance.now();
+    function animateMissile(now){
+      const p = Math.min(1, (now-startTime)/duration);
+      missile.style.left = (startX + dx*p) + 'px';
+      missile.style.top = (startY + dy*p) + 'px';
+      if (p < 1) {
+        requestAnimationFrame(animateMissile);
+      } else {
+        missile.remove();
+        impact(item, targetX, targetY);
+      }
+    }
+    requestAnimationFrame(animateMissile);
+  }
+
+  function impact(item, x, y){
+    if (item.el && item.el.parentNode){
+      item.el.classList.add('shockwave');
+      setTimeout(()=>{ if(item.el.parentNode) item.el.remove(); }, 300);
+    }
+    for (let i=0;i<8;i++){
+      const b = document.createElement('div');
+      b.className = 'burst' + (i%2? ' b2':'');
+      b.style.left = x + 'px';
+      b.style.top = y + 'px';
+      field.appendChild(b);
+      const ang = (Math.PI*2/8)*i;
+      const dist = 30 + Math.random()*20;
+      const bx = Math.cos(ang)*dist, by = Math.sin(ang)*dist;
+      const start = performance.now();
+      (function anim(){
+        function step(now){
+          const p = Math.min(1,(now-start)/380);
+          b.style.left = (x + bx*p) + 'px';
+          b.style.top = (y + by*p) + 'px';
+          b.style.opacity = 1-p;
+          if (p<1) requestAnimationFrame(step); else b.remove();
+        }
+        requestAnimationFrame(step);
+      })();
+    }
+    addScore(DIFFICULTY.pointsPerHit);
+    correctSinceLevelUp++;
+    if (correctSinceLevelUp >= DIFFICULTY.correctHitsPerLevel) {
+      correctSinceLevelUp = 0;
+      levelUp();
+    }
+  }
+
+  function wrongPress(btnEl){
+    if (!btnEl) return;
+    btnEl.classList.add('wrong-flash');
+    setTimeout(()=>btnEl.classList.remove('wrong-flash'), 300);
+  }
+
+  function addScore(n){
+    score += n;
+    scoreVal.textContent = score;
+  }
+
+  function levelUp(){
+    level++;
+    levelVal.textContent = level;
+  }
+
+  // -------- Game lifecycle --------
+  function resetState(){
+    score = 0; level = 1; lives = DIFFICULTY.startLives; correctSinceLevelUp = 0;
+    scoreVal.textContent = '0';
+    levelVal.textContent = '1';
+    renderHearts();
+    items.forEach(i => { if (i.el && i.el.parentNode) i.el.remove(); });
+    items = [];
+    field.querySelectorAll('.missile,.burst,.ground-flash').forEach(n=>n.remove());
+  }
+
+  function startGame(){
+    resetState();
+    running = true;
+    startScreen.classList.add('hidden');
+    gameoverScreen.classList.add('hidden');
+    scheduleSpawn();
+    lastFrameTime = performance.now();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function endGame(){
+    running = false;
+    clearTimeout(spawnTimer);
+    cancelAnimationFrame(rafId);
+    finalScoreEl.textContent = score;
+    gameoverScreen.classList.remove('hidden');
+  }
+
+  startBtn.addEventListener('click', startGame);
+  restartBtn.addEventListener('click', startGame);
+
+  renderHearts();
+})();
+</script>
+</body>
+</html>
