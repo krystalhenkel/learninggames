@@ -101,11 +101,6 @@
     border:2px solid var(--panel-edge);
     font-size:2rem;
   }
-  .falling-item .word-tag{
-    margin-top:3px;font-size:0.7rem;font-weight:800;
-    background:rgba(7,16,25,0.7);padding:1px 7px;border-radius:8px;
-    color:var(--moon);letter-spacing:0.02em;
-  }
   .falling-item.shockwave{animation:pop .3s ease forwards;}
   @keyframes pop{
     0%{transform:scale(1);opacity:1;}
@@ -268,123 +263,119 @@
 
    HOW TO CUSTOMIZE THIS GAME
    ---------------------------------------------------------------------
-   1. ALPHABET (below): the set of letter buttons shown on the keyboard,
-      and the sound file played when each one is pressed.
-   2. WORD_LIST (below): maps each image filename (in /images) to the
-      Lik̓wala word it shows and that word's first letter.
-   3. Sound files go in /assets, named exactly as given in each
-      alphabet entry's "sound" field.
-   4. DIFFICULTY constants near the bottom of this section control
+   1. ALPHABET (below): the set of letters used in the game. Each entry's
+      "file" is the shared base filename for that letter's image (in
+      /images, as .png) AND its sound (in /assets, as .mp3) — this
+      matches the file naming used by the soundboard this data comes from.
+   2. WORD_LIST is generated automatically from ALPHABET below it, since
+      the source soundboard has exactly one illustration per letter
+      (not per animal/object word). See note below for how to expand this.
+   3. DIFFICULTY constants near the bottom of this section control
       fall speed, spawn rate, and level-up pace.
 
-   ⚠️ IMPORTANT LANGUAGE NOTE
+   SOURCE OF ALPHABET, IMAGES, AND SOUNDS
    ---------------------------------------------------------------------
-   The alphabet below was compiled from public reference sources on
-   Lik̓wala/Liq'wala (a Kwak'wala dialect/related language of the
-   Laich-kwil-tach people). Orthography conventions can vary between
-   communities, language programs, and published sources. Please check
-   this list — including letter order, exact characters, and digraphs
-   — against the materials used by your own Lik̓wala language
-   program/teacher/authority, and correct anything that doesn't match
-   before using this with learners. The WORD_LIST below uses ENGLISH
-   placeholder words (e.g. "bear") purely so the game runs out of the
-   box — replace every "word" value with the real Lik̓wala word for
-   that image, and fix "firstLetter" to match.
+   This data is taken directly from the "alphabetMapping" array in
+   Krystal Henkel's Lik̓wala Alphabet Soundboard:
+   https://github.com/krystalhenkel/learninggames/blob/main/soundboard.html
+   Copy that project's /images and /assets folders into this game's
+   folder (same filenames, same .png / .mp3 extensions) and it should
+   work as-is. The "phonetic" field is the soundboard's English
+   pronunciation guide (e.g. "b (boy)") — used here only as fallback
+   alt-text for accessibility, and is never shown on-screen during play
+   so it doesn't give away the answer.
+
+   ⚠️ NOTE ON GAMEPLAY: because there's currently one image per LETTER
+   rather than per animal/object WORD, each round the falling picture
+   IS the letter's own illustration card — the player must still
+   recognize which letter it corresponds to and tap it, they just won't
+   see a variety of different animals per letter yet. If you later get
+   separate animal/object images (e.g. bear.png, salmon.png) with known
+   Lik̓wala words, add them to WORD_LIST_EXTRA below and they'll be
+   mixed in automatically.
    ===================================================================== */
 
 // ---------------------------------------------------------------------
-// 1. ALPHABET — edit freely. "char" is what shows on the button.
-//    "sound" is the filename (in /assets) played when that button
-//    is pressed. Organized by phoneme grouping (see languagegeek.com's
-//    Liq'wala consonant/vowel charts) rather than a fixed alphabetical
-//    order, since sources disagree on ordering — reorder as you like.
+// 1. ALPHABET — from Krystal Henkel's soundboard (alphabetMapping).
+//    "char" = letter shown on the keyboard button.
+//    "file" = shared base filename for image (/images/{file}.png)
+//             and sound (/assets/{file}.mp3).
+//    "phonetic" = English pronunciation guide, used only as alt-text.
+// Source: https://github.com/krystalhenkel/learninggames/blob/main/soundboard.html
 // ---------------------------------------------------------------------
 const ALPHABET = [
-  // Voiced stops
-  {char:'B',  sound:'assets/b.mp3'},
-  {char:'D',  sound:'assets/d.mp3'},
-  {char:'Dᶻ', sound:'assets/dz.mp3'},
-  {char:'Λ',  sound:'assets/dl.mp3'},
-  {char:'G',  sound:'assets/g.mp3'},
-  {char:'Gʷ', sound:'assets/gw.mp3'},
-  {char:'Ǧ',  sound:'assets/g-caron.mp3'},
-  {char:'Ǧʷ', sound:'assets/gw-caron.mp3'},
-  {char:'ʔ',  sound:'assets/glottal-stop.mp3'},
-  // Voiceless (aspirated) stops
-  {char:'P',  sound:'assets/p.mp3'},
-  {char:'T',  sound:'assets/t.mp3'},
-  {char:'C',  sound:'assets/c.mp3'},
-  {char:'Ƛ',  sound:'assets/tl.mp3'},
-  {char:'K',  sound:'assets/k.mp3'},
-  {char:'Kʷ', sound:'assets/kw.mp3'},
-  {char:'Q',  sound:'assets/q.mp3'},
-  {char:'Qʷ', sound:'assets/qw.mp3'},
-  // Ejective stops
-  {char:'P̓',  sound:'assets/p-glottal.mp3'},
-  {char:'T̓',  sound:'assets/t-glottal.mp3'},
-  {char:'C̓',  sound:'assets/c-glottal.mp3'},
-  {char:'Ƛ̓',  sound:'assets/tl-glottal.mp3'},
-  {char:'K̓',  sound:'assets/k-glottal.mp3'},
-  {char:'K̓ʷ', sound:'assets/kw-glottal.mp3'},
-  {char:'Q̓',  sound:'assets/q-glottal.mp3'},
-  {char:'Q̓ʷ', sound:'assets/qw-glottal.mp3'},
-  // Voiceless fricatives
-  {char:'S',  sound:'assets/s.mp3'},
-  {char:'Ł',  sound:'assets/lh.mp3'},
-  {char:'X',  sound:'assets/x.mp3'},
-  {char:'Xʷ', sound:'assets/xw.mp3'},
-  {char:'X̌',  sound:'assets/x-caron.mp3'},
-  {char:'X̌ʷ', sound:'assets/xw-caron.mp3'},
-  {char:'H',  sound:'assets/h.mp3'},
-  // Nasals / resonants
-  {char:'M',  sound:'assets/m.mp3'},
-  {char:'N',  sound:'assets/n.mp3'},
-  {char:'L',  sound:'assets/l.mp3'},
-  {char:'Y',  sound:'assets/y.mp3'},
-  {char:'W',  sound:'assets/w.mp3'},
-  // Glottalized nasals / resonants
-  {char:'M̓',  sound:'assets/m-glottal.mp3'},
-  {char:'N̓',  sound:'assets/n-glottal.mp3'},
-  {char:'L̓',  sound:'assets/l-glottal.mp3'},
-  {char:'Y̓',  sound:'assets/y-glottal.mp3'},
-  {char:'W̓',  sound:'assets/w-glottal.mp3'},
-  // Vowels
-  {char:'I',  sound:'assets/i.mp3'},
-  {char:'U',  sound:'assets/u.mp3'},
-  {char:'Ē',  sound:'assets/e-long.mp3'},
-  {char:'E',  sound:'assets/e.mp3'},
-  {char:'Ə',  sound:'assets/schwa.mp3'},
-  {char:'O',  sound:'assets/o.mp3'},
-  {char:'A',  sound:'assets/a.mp3'},
+  {char:'a',  file:'a',                    phonetic:'ah (father)'},
+  {char:'b',  file:'b',                    phonetic:'b (boy)'},
+  {char:'c',  file:'c',                    phonetic:"ts (cats)"},
+  {char:'c̓',  file:'c_glottal',            phonetic:"ts' (popped ts)"},
+  {char:'d',  file:'d',                    phonetic:'d (dog)'},
+  {char:'dᶻ', file:'dz',                   phonetic:'dz (adze)'},
+  {char:'e',  file:'e',                    phonetic:'eh (bed)'},
+  {char:'ē',  file:'e_long',               phonetic:'ay (play)'},
+  {char:'ə',  file:'schwa',                phonetic:'uh (cup / schwa)'},
+  {char:'g',  file:'g',                    phonetic:'g (go)'},
+  {char:'gʷ', file:'g_w',                  phonetic:'gw (gwen)'},
+  {char:'ǧ',  file:'g_wedge',              phonetic:'gh (deep back g)'},
+  {char:'ǧʷ', file:'g_wedge_w',            phonetic:'ghw (deep back gw)'},
+  {char:'h',  file:'h',                    phonetic:'h (hi)'},
+  {char:'i',  file:'i',                    phonetic:'ee (see)'},
+  {char:'k',  file:'k',                    phonetic:'k (sky)'},
+  {char:'k̓',  file:'k_glottal',            phonetic:"k' (popped k)"},
+  {char:'kʷ', file:'k_w',                  phonetic:'kw (quick)'},
+  {char:'k̓ʷ', file:'k_w_glottal',          phonetic:"kw' (popped kw)"},
+  {char:'l',  file:'l',                    phonetic:'l (look)'},
+  {char:'l̓',  file:'l_glottal',            phonetic:"'l (glottalized l)"},
+  {char:'ł',  file:'l_tilde',              phonetic:'lh (hissed l)'},
+  {char:'λ',  file:'lambda',               phonetic:'dl (addle)'},
+  {char:'ƛ',  file:'lambda_barred',        phonetic:'tl (atlas)'},
+  {char:'ƛ̓',  file:'lambda_barred_glottal',phonetic:"tl' (popped tl)"},
+  {char:'m',  file:'m',                    phonetic:'m (mother)'},
+  {char:'m̓',  file:'m_glottal',            phonetic:"'m (glottalized m)"},
+  {char:'n',  file:'n',                    phonetic:'n (net)'},
+  {char:'n̓',  file:'n_glottal',            phonetic:"'n (glottalized n)"},
+  {char:'o',  file:'o',                    phonetic:'oh (boat)'},
+  {char:'p',  file:'p',                    phonetic:'p (spin)'},
+  {char:'p̓',  file:'p_glottal',            phonetic:"p' (popped p)"},
+  {char:'q',  file:'q',                    phonetic:'q (deep back k)'},
+  {char:'qʷ', file:'q_w',                  phonetic:'qw (deep back kw)'},
+  {char:'q̓',  file:'q_glottal',            phonetic:"q' (popped deep k)"},
+  {char:'q̓ʷ', file:'q_w_glottal',          phonetic:"qw' (popped deep kw)"},
+  {char:'s',  file:'s',                    phonetic:'s (sun)'},
+  {char:'t',  file:'t',                    phonetic:'t (stop)'},
+  {char:'t̓',  file:'t_glottal',            phonetic:"t' (popped t)"},
+  {char:'u',  file:'u',                    phonetic:'oo (boot)'},
+  {char:'w',  file:'w',                    phonetic:'w (win)'},
+  {char:'w̓',  file:'w_glottal',            phonetic:"'w (glottalized w)"},
+  {char:'x',  file:'x',                    phonetic:'kh (Scottish loch)'},
+  {char:'xʷ', file:'x_w',                  phonetic:'khw (whistled kh)'},
+  {char:'x̌',  file:'x_wedge',              phonetic:'xr (deep German ach)'},
+  {char:'x̌ʷ', file:'x_wedge_w',            phonetic:'xrw (deep rounded rasp)'},
+  {char:'y',  file:'y',                    phonetic:'y (yes)'},
+  {char:'y̓',  file:'y_glottal',            phonetic:"'y (glottalized y)"},
+  {char:'ʔ',  file:'glottal_stop',         phonetic:"' (glottal catch)"},
 ];
 
 // ---------------------------------------------------------------------
-// 2. WORD_LIST — edit freely. Each entry maps an /images filename to
-//    the word it shows and that word's first letter (must exactly
-//    match one of the "char" values in ALPHABET above).
-//    ⚠️ "word" values here are ENGLISH PLACEHOLDERS. Replace with the
-//    real Lik̓wala word before using this with learners.
+// 2. WORD_LIST_EXTRA — OPTIONAL. Add entries here once you have separate
+//    animal/object images with known Lik̓wala words (e.g. bear.png with
+//    the real Lik̓wala word for "bear"). Same shape as before:
+//    {file, word, firstLetter, alt} — firstLetter must exactly match a
+//    "char" value in ALPHABET above. Leave empty to use only the
+//    per-letter illustrations from the soundboard.
 // ---------------------------------------------------------------------
+const WORD_LIST_EXTRA = [
+  // {file:'bear.png', word:'PUT LIKʼWALA WORD HERE', firstLetter:'b', alt:'bear'},
+];
+
+// Built automatically — do not need to edit below this line.
 const WORD_LIST = [
-  {file:'bear.png',     word:'bear (REPLACE ME)',     firstLetter:'B', alt:'bear'},
-  {file:'salmon.png',   word:'salmon (REPLACE ME)',   firstLetter:'S', alt:'salmon'},
-  {file:'canoe.png',    word:'canoe (REPLACE ME)',    firstLetter:'C', alt:'canoe'},
-  {file:'drum.png',     word:'drum (REPLACE ME)',     firstLetter:'D', alt:'drum'},
-  {file:'eagle.png',    word:'eagle (REPLACE ME)',    firstLetter:'E', alt:'eagle'},
-  {file:'house.png',    word:'house (REPLACE ME)',    firstLetter:'H', alt:'house'},
-  {file:'wolf.png',     word:'wolf (REPLACE ME)',     firstLetter:'W', alt:'wolf'},
-  {file:'mountain.png', word:'mountain (REPLACE ME)', firstLetter:'M', alt:'mountain'},
-  {file:'net.png',      word:'net (REPLACE ME)',      firstLetter:'N', alt:'net'},
-  {file:'owl.png',      word:'owl (REPLACE ME)',      firstLetter:'O', alt:'owl'},
-  {file:'lake.png',     word:'lake (REPLACE ME)',     firstLetter:'L', alt:'lake'},
-  {file:'yew.png',      word:'yew tree (REPLACE ME)', firstLetter:'Y', alt:'yew tree'},
-  {file:'axe.png',      word:'axe (REPLACE ME)',      firstLetter:'A', alt:'axe'},
-  {file:'gull.png',     word:'gull (REPLACE ME)',     firstLetter:'G', alt:'gull'},
-  {file:'quill.png',    word:'quill (REPLACE ME)',    firstLetter:'Q', alt:'quill'},
-  {file:'totem.png',    word:'totem pole (REPLACE ME)', firstLetter:'T', alt:'totem pole'},
-  {file:'paddle.png',   word:'paddle (REPLACE ME)',   firstLetter:'P', alt:'paddle'},
-  {file:'urchin.png',   word:'sea urchin (REPLACE ME)', firstLetter:'U', alt:'sea urchin'},
-  {file:'kelp.png',     word:'kelp (REPLACE ME)',     firstLetter:'K', alt:'kelp'},
+  ...ALPHABET.map(entry => ({
+    file: entry.file + '.png',
+    word: null,
+    firstLetter: entry.char,
+    alt: entry.phonetic,
+  })),
+  ...WORD_LIST_EXTRA,
 ];
 
 // ---------------------------------------------------------------------
@@ -546,11 +537,6 @@ const DIFFICULTY = {
     };
     el.appendChild(img);
 
-    const tag = document.createElement('div');
-    tag.className = 'word-tag';
-    tag.textContent = wordObj.firstLetter + ' …';
-    el.appendChild(tag);
-
     field.appendChild(el);
 
     const id = ++itemIdCounter;
@@ -607,7 +593,8 @@ const DIFFICULTY = {
   // -------- Answering --------
   function handleKeyPress(char, btnEl){
     if (!running) return;
-    playSound(ALPHABET.find(a=>a.char===char)?.sound);
+    const alphaEntry = ALPHABET.find(a=>a.char===char);
+    if (alphaEntry) playSound('assets/' + alphaEntry.file + '.mp3');
 
     // find the lowest (closest to landing) alive item matching this letter
     let target = null;
