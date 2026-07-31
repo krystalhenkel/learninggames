@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Likʼwala Alphabet Soundboard</title>
+  <style>
+    :root {
+      --bg-color: #f4f6f8;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --card-hover: #e0f2fe;
+      --primary-color: #0284c7;
+      --text-main: #1e293b;
+      --text-sub: #64748b;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-active: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+      max-width: 700px;
+    }
+
+    h1 {
+      font-size: 2.25rem;
+      color: #0f172a;
+      margin-bottom: 0.5rem;
+    }
+
+    p.subtitle {
+      color: var(--text-sub);
+      font-size: 1.1rem;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 1rem;
+      width: 100%;
+      max-width: 1000px;
+    }
+
+    .letter-card {
+      background: var(--card-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.25rem 0.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: all 0.15s ease-in-out;
+      user-select: none;
+    }
+
+    .letter-card:hover {
+      background-color: var(--card-hover);
+      border-color: var(--primary-color);
+      transform: translateY(-2px);
+    }
+
+    .letter-card:active, .letter-card.playing {
+      transform: translateY(1px);
+      border-color: var(--primary-color);
+      box-shadow: var(--shadow-active);
+      background-color: #bae6fd;
+    }
+
+    .symbol {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 0.25rem;
+    }
+
+    .phonetic {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-sub);
+      text-align: center;
+    }
+
+    footer {
+      margin-top: auto;
+      padding-top: 3rem;
+      font-size: 0.9rem;
+      color: var(--text-sub);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Likʼwala Alphabet Soundboard</h1>
+    <p class="subtitle">Click or tap any letter to listen to its pronunciation.</p>
+  </header>
+
+  <main class="grid-container" id="soundboard">
+    <!-- Cards will be dynamically inserted here by JS -->
+  </main>
+
+  <footer>
+    <p>Likʼwala Soundboard &bull; Language Learning Tool</p>
+  </footer>
+
+  <script>
+    // Alphabet configuration
+    // audio: matches the file name in assets/ (e.g., 'assets/a.mp3')
+    const alphabet = [
+      { symbol: "a", phonetic: "ah (as in father)", audio: "a.mp3" },
+      { symbol: "ä", phonetic: "a (as in cat)", audio: "aa.mp3" },
+      { symbol: "b", phonetic: "b (as in boy)", audio: "b.mp3" },
+      { symbol: "d", phonetic: "d (as in dog)", audio: "d.mp3" },
+      { symbol: "dz", phonetic: "ds (as in reads)", audio: "dz.mp3" },
+      { symbol: "e", phonetic: "eh (as in pet)", audio: "e.mp3" },
+      { symbol: "g", phonetic: "g (as in go)", audio: "g.mp3" },
+      { symbol: "g̱", phonetic: "deep g (back throat)", audio: "gh.mp3" },
+      { symbol: "gw", phonetic: "gw (as in Gwen)", audio: "gw.mp3" },
+      { symbol: "h", phonetic: "h (as in hat)", audio: "h.mp3" },
+      { symbol: "i", phonetic: "ee (as in see)", audio: "i.mp3" },
+      { symbol: "k", phonetic: "k (as in kite)", audio: "k.mp3" },
+      { symbol: "k̕", phonetic: "popped k (glottal)", audio: "k_glottal.mp3" },
+      { symbol: "kw", phonetic: "kw (as in quick)", audio: "kw.mp3" },
+      { symbol: "k̕w", phonetic: "popped kw", audio: "kw_glottal.mp3" },
+      { symbol: "x", phonetic: "kh (raspy ch)", audio: "x.mp3" },
+      { symbol: "l", phonetic: "l (as in look)", audio: "l.mp3" },
+      { symbol: "ł", phonetic: "hissing l sound", audio: "lh.mp3" },
+      { symbol: "m", phonetic: "m (as in mom)", audio: "m.mp3" },
+      { symbol: "n", phonetic: "n (as in no)", audio: "n.mp3" },
+      { symbol: "p", phonetic: "p (as in pet)", audio: "p.mp3" },
+      { symbol: "p̕", phonetic: "popped p (glottal)", audio: "p_glottal.mp3" },
+      { symbol: "s", phonetic: "s (as in sun)", audio: "s.mp3" },
+      { symbol: "t", phonetic: "t (as in top)", audio: "t.mp3" },
+      { symbol: "t̕", phonetic: "popped t (glottal)", audio: "t_glottal.mp3" },
+      { symbol: "ts", phonetic: "ts (as in cats)", audio: "ts.mp3" },
+      { symbol: "ts̕", phonetic: "popped ts", audio: "ts_glottal.mp3" },
+      { symbol: "u", phonetic: "oo (as in boot)", audio: "u.mp3" },
+      { symbol: "w", phonetic: "w (as in win)", audio: "w.mp3" },
+      { symbol: "y", phonetic: "y (as in yes)", audio: "y.mp3" },
+      { symbol: "ʔ", phonetic: "catch in throat", audio: "glottal_stop.mp3" }
+    ];
+
+    const soundboard = document.getElementById("soundboard");
+    let currentAudio = null;
+
+    // Create a card for each letter
+    alphabet.forEach((item) => {
+      const card = document.createElement("button");
+      card.className = "letter-card";
+      card.setAttribute("aria-label", `Pronounce letter ${item.symbol}`);
+
+      card.innerHTML = `
+        <span class="symbol">${item.symbol}</span>
+        <span class="phonetic">${item.phonetic}</span>
+      `;
+
+      card.addEventListener("click", () => playSound(item.audio, card));
+      soundboard.appendChild(card);
+    });
+
+    function playSound(audioFile, cardElement) {
+      // Stop currently playing audio if any
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        document.querySelectorAll(".letter-card").forEach(c => c.classList.remove("playing"));
+      }
+
+      // Play selected audio
+      const audio = new Audio(`assets/${audioFile}`);
+      currentAudio = audio;
+
+      cardElement.classList.add("playing");
+
+      audio.play().catch(error => {
+        console.warn(`Could not play assets/${audioFile}. Check if file exists.`, error);
+      });
+
+      audio.onended = () => {
+        cardElement.classList.remove("playing");
+      };
+    }
+  </script>
+</body>
+</html>
