@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Krystal's Games | learninggames</title>
+<meta name="description" content="Krystal's Games — play and learn Lik̓wala through interactive games: soundboard, defender, counting bears, colours, and Gəlgaʔomas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1f2937;
+    --ink-soft:#5b6472;
+    --bg:#f6f8fb;
+    --card:#ffffff;
+    --line:#e7ebf1;
+    --blue:#2f6fed;
+    --blue-bg:#eaf1ff;
+    --purple:#7c4fe0;
+    --purple-bg:#f1ebfd;
+    --green:#1f9d63;
+    --green-bg:#e7f8ef;
+    --orange:#e2792b;
+    --orange-bg:#fdf0e4;
+    --pink:#d84b8c;
+    --pink-bg:#fcebf3;
+    --teal:#1097a3;
+    --teal-bg:#e5f6f7;
+    --shadow: 0 10px 24px rgba(31,41,55,0.08);
+    --shadow-hover: 0 16px 34px rgba(31,41,55,0.14);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family:'Nunito', -apple-system, sans-serif;
+    color:var(--ink);
+    background:var(--bg);
+    line-height:1.5;
+  }
+  h1,h2,h3,.display{ font-family:'Baloo 2', sans-serif; }
+  a{ color:inherit; text-decoration:none; }
+
+  /* ---------- TOP NAV ---------- */
+  .topnav{
+    background:#ffffff;
+    border-bottom:1px solid var(--line);
+    position:sticky; top:0; z-index:20;
+  }
+  .topnav-inner{
+    max-width:1120px; margin:0 auto;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 24px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Baloo 2'; font-weight:800; font-size:1.25rem; color:var(--ink);
+  }
+  .brand .logo{
+    width:38px; height:38px; border-radius:10px;
+    background:linear-gradient(135deg, var(--blue), var(--purple));
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.2rem;
+  }
+  .topnav-links{ display:flex; gap:22px; font-weight:700; font-size:0.95rem; color:var(--ink-soft); }
+  .topnav-links a:hover{ color:var(--blue); }
+  @media (max-width:640px){ .topnav-links{ display:none; } }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    background:
+      radial-gradient(circle at 15% 20%, rgba(47,111,237,0.14), transparent 45%),
+      radial-gradient(circle at 85% 0%, rgba(124,79,224,0.14), transparent 45%),
+      linear-gradient(180deg, #ffffff, var(--bg));
+    padding:56px 24px 40px;
+    text-align:center;
+  }
+  .hero-inner{ max-width:760px; margin:0 auto; }
+  .eyebrow{
+    display:inline-block;
+    font-weight:800; font-size:0.78rem; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--blue); background:var(--blue-bg);
+    padding:6px 14px; border-radius:999px; margin-bottom:16px;
+  }
+  .hero h1{
+    font-size:clamp(2rem, 5vw, 2.9rem);
+    font-weight:800; margin:0 0 12px;
+  }
+  .hero p{
+    color:var(--ink-soft); font-size:1.08rem; max-width:56ch; margin:0 auto;
+  }
+  .hero-stats{
+    display:flex; justify-content:center; gap:28px; margin-top:28px; flex-wrap:wrap;
+  }
+  .hero-stats .stat{ text-align:center; }
+  .hero-stats .num{ font-family:'Baloo 2'; font-weight:800; font-size:1.5rem; color:var(--ink); }
+  .hero-stats .lab{ font-size:0.8rem; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em; }
+
+  /* ---------- MAIN ---------- */
+  main{ max-width:1120px; margin:0 auto; padding:8px 24px 60px; }
+  .section-head{
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin:36px 0 18px; flex-wrap:wrap; gap:8px;
+  }
+  .section-head h2{ font-size:1.5rem; margin:0; }
+  .section-head .sub{ color:var(--ink-soft); font-size:0.92rem; }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+    gap:20px;
+  }
+
+  .game-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:22px;
+    box-shadow:var(--shadow);
+    display:flex; flex-direction:column; gap:12px;
+    transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+  }
+  .game-card:hover{
+    transform:translateY(-4px);
+    box-shadow:var(--shadow-hover);
+    border-color:transparent;
+  }
+  .card-top{ display:flex; align-items:center; gap:14px; }
+  .icon-badge{
+    width:52px; height:52px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.6rem; flex-shrink:0;
+  }
+  .card-title{ font-family:'Baloo 2'; font-weight:700; font-size:1.12rem; color:var(--ink); }
+  .card-tag{
+    display:inline-block; margin-top:2px;
+    font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:0.05em;
+    padding:2px 9px; border-radius:999px;
+  }
+  .game-card p.desc{
+    color:var(--ink-soft); font-size:0.92rem; margin:0; flex-grow:1;
+  }
+  .card-media{
+    width:100%; border-radius:12px; overflow:hidden; background:var(--bg);
+    display:flex; align-items:center; justify-content:center; min-height:64px;
+  }
+  .card-media img{ max-height:76px; width:auto; display:block; }
+  .play-link{
+    display:inline-flex; align-items:center; gap:6px;
+    font-weight:800; font-size:0.92rem;
+    padding:9px 4px 0;
+  }
+  .play-link .arrow{ transition:transform .15s ease; }
+  .game-card:hover .play-link .arrow{ transform:translateX(4px); }
+
+  /* color themes */
+  .theme-blue .icon-badge{ background:var(--blue-bg); color:var(--blue); }
+  .theme-blue .card-tag{ background:var(--blue-bg); color:var(--blue); }
+  .theme-blue .play-link{ color:var(--blue); }
+
+  .theme-orange .icon-badge{ background:var(--orange-bg); color:var(--orange); }
+  .theme-orange .card-tag{ background:var(--orange-bg); color:var(--orange); }
+  .theme-orange .play-link{ color:var(--orange); }
+
+  .theme-green .icon-badge{ background:var(--green-bg); color:var(--green); }
+  .theme-green .card-tag{ background:var(--green-bg); color:var(--green); }
+  .theme-green .play-link{ color:var(--green); }
+
+  .theme-purple .icon-badge{ background:var(--purple-bg); color:var(--purple); }
+  .theme-purple .card-tag{ background:var(--purple-bg); color:var(--purple); }
+  .theme-purple .play-link{ color:var(--purple); }
+
+  .theme-pink .icon-badge{ background:var(--pink-bg); color:var(--pink); }
+  .theme-pink .card-tag{ background:var(--pink-bg); color:var(--pink); }
+  .theme-pink .play-link{ color:var(--pink); }
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    border-top:1px solid var(--line);
+    background:#ffffff;
+    padding:26px 24px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:0.88rem;
+  }
+  footer a{ color:var(--blue); font-weight:700; }
+</style>
+</head>
+<body>
+
+  <nav class="topnav">
+    <div class="topnav-inner">
+      <div class="brand"><span class="logo">🎮</span> Krystal's Games</div>
+      <div class="topnav-links">
+        <a href="#games">Games</a>
+        <a href="https://github.com/krystalhenkel/learninggames" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="eyebrow">Free &middot; Open Source &middot; Play in your browser</span>
+      <h1>Learn Lik̓wala through play</h1>
+      <p>A growing collection of games for practising Lik̓wala words, sounds, and counting — built for learners of every age, no download required.</p>
+      <div class="hero-stats">
+        <div class="stat"><div class="num">5</div><div class="lab">Games</div></div>
+        <div class="stat"><div class="num">100%</div><div class="lab">Free to play</div></div>
+        <div class="stat"><div class="num">∞</div><div class="lab">Practice rounds</div></div>
+      </div>
+    </div>
+  </header>
+
+  <main id="games">
+    <div class="section-head">
+      <h2>All games</h2>
+      <span class="sub">Pick one to start playing</span>
+    </div>
+
+    <div class="grid">
+
+      <a class="game-card theme-blue" href="soundboard.html">
+        <div class="card-top">
+          <div class="icon-badge">🔊</div>
+          <div>
+            <div class="card-title">Lik̓wala soundboard</div>
+            <span class="card-tag">Listening</span>
+          </div>
+        </div>
+        <p class="desc">Tap through words and phrases to hear how Lik̓wala sounds. A great first stop before trying the other games.</p>
+        <span class="play-link">Play now <span class="arrow">→</span></span>
+      </a>
+
+      <a class="game-card theme-orange" href="defender.html">
+        <div class="card-top">
+          <div class="icon-badge">🛡️</div>
+          <div>
+            <div class="card-title">Lik̓waka defender</div>
+            <span class="card-tag">Action</span>
+          </div>
+        </div>
+        <p class="desc">A fast-paced defence game that keeps you on your toes while reinforcing words as you play.</p>
+        <span class="play-link">Play now <span class="arrow">→</span></span>
+      </a>
+
+      <a class="game-card theme-green" href="husatlayi.html">
+        <div class="card-top">
+          <div class="icon-badge">🐻</div>
+          <div>
+            <div class="card-title">Lik̓wala counting bears</div>
+            <span class="card-tag">Counting</span>
+          </div>
+        </div>
+        <div class="card-media"><img src="images/bear.png" alt="A counting bear from the game"></div>
+        <p class="desc">Count along with the bears to practise numbers in Lik̓wala.</p>
+        <span class="play-link">Play now <span class="arrow">→</span></span>
+      </a>
+
+      <a class="game-card theme-purple" href="wistuwux.html">
+        <div class="card-top">
+          <div class="icon-badge">🎨</div>
+          <div>
+            <div class="card-title">Lik̓wala colours game</div>
+            <span class="card-tag">Vocabulary</span>
+          </div>
+        </div>
+        <p class="desc">Match colours to their Lik̓wala names in this quick, colourful practice game.</p>
+        <span class="play-link">Play now <span class="arrow">→</span></span>
+      </a>
+
+      <a class="game-card theme-pink" href="gelgaomas.html">
+        <div class="card-top">
+          <div class="icon-badge">🦉</div>
+          <div>
+            <div class="card-title">Gəlgaʔomas</div>
+            <span class="card-tag">Reflex</span>
+          </div>
+        </div>
+        <p class="desc">Raise the right flag before time runs out — a speedy game for learning Lik̓wala animal names.</p>
+        <span class="play-link">Play now <span class="arrow">→</span></span>
+      </a>
+
+    </div>
+  </main>
+
+  <footer>
+    This site is open source. <a href="https://github.com/krystalhenkel/learninggames/edit/main/index.md" target="_blank" rel="noopener">Improve this page</a>
+  </footer>
+
+</body>
+</html>
